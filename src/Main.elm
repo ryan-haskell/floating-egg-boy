@@ -1,10 +1,14 @@
 module Main exposing (main)
 
 import Browser
+import Browser.Events as Events
 import Grid exposing (Grid)
 import Html exposing (..)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onClick)
+import Json.Decode as D exposing (Decoder)
+import Process
+import Task
 
 
 
@@ -43,12 +47,14 @@ type alias Tile =
 
 type TileBackground
     = Wall
+    | Ladder
     | Door
     | Sky
 
 
 type TileForeground
     = Grass
+    | DarkGrass
     | Hole
     | Rock
 
@@ -63,6 +69,7 @@ type alias Player =
 type Direction
     = Left
     | Right
+    | Up
 
 
 
@@ -84,8 +91,8 @@ map =
         (Tile Wall Hole)
         [ [ Tile Sky Hole, Tile Sky Hole, Tile Sky Hole, Tile Sky Hole, Tile Sky Hole ]
         , [ Tile Sky Hole, Tile Sky Hole, Tile Sky Hole, Tile Sky Hole, Tile Sky Hole ]
-        , [ Tile Sky Hole, Tile Sky Hole, Tile Sky Hole, Tile Wall Hole, Tile Sky Hole ]
-        , [ Tile Sky Grass, Tile Wall Grass, Tile Wall Grass, Tile Wall Grass, Tile Sky Grass ]
+        , [ Tile Sky Hole, Tile Sky Grass, Tile Sky DarkGrass, Tile Wall Grass, Tile Sky Hole ]
+        , [ Tile Sky Grass, Tile Wall Grass, Tile Ladder Grass, Tile Wall Grass, Tile Sky Grass ]
         ]
 
 
@@ -103,6 +110,7 @@ initPlayer =
 
 type Msg
     = Move Direction
+    | FallAndStuff
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -113,20 +121,75 @@ update msg model =
                 player =
                     model.player
 
-                newX =
+                ( newX, newY ) =
                     case direction of
                         Left ->
-                            max 0 (model.player.x - 1)
+                            ( max 0 (player.x - 1), player.y )
 
                         Right ->
-                            min (Grid.width map - 1) (model.player.x + 1)
+                            ( min (Grid.width map - 1) (player.x + 1), player.y )
+
+                        Up ->
+                            ( player.x
+                            , if isPlayerOnBackground model Ladder then
+                                max 0 (model.player.y - 1)
+
+                              else
+                                player.y
+                            )
             in
             ( { model
                 | player =
-                    { player | x = newX, direction = direction }
+                    { player
+                        | x = newX
+                        , y = newY
+                        , direction = direction
+                    }
               }
+            , delay 300 FallAndStuff
+            )
+
+        FallAndStuff ->
+            let
+                player =
+                    model.player
+
+                isPlayerOnGround =
+                    List.any (isPlayerOnForeground model)
+                        [ Grass
+                        , DarkGrass
+                        , Rock
+                        ]
+            in
+            ( if isPlayerOnGround then
+                model
+
+              else
+                { model | player = { player | y = max (Grid.height map - 1) (player.y + 1) } }
             , Cmd.none
             )
+
+
+delay : Float -> Msg -> Cmd Msg
+delay ms msg =
+    Process.sleep ms
+        |> Task.perform (always msg)
+
+
+isPlayerOnBackground : Model -> TileBackground -> Bool
+isPlayerOnBackground model background =
+    Grid.get ( model.player.x, model.player.y ) model.map
+        |> Maybe.map .background
+        |> Maybe.map ((==) background)
+        |> Maybe.withDefault False
+
+
+isPlayerOnForeground : Model -> TileForeground -> Bool
+isPlayerOnForeground model foreground =
+    Grid.get ( model.player.x, model.player.y ) model.map
+        |> Maybe.map .foreground
+        |> Maybe.map ((==) foreground)
+        |> Maybe.withDefault False
 
 
 
@@ -135,7 +198,29 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Sub.batch
+        [ Events.onKeyDown keyDownDecoder
+        ]
+
+
+keyDownDecoder : Decoder Msg
+keyDownDecoder =
+    D.field "key" D.string
+        |> D.andThen
+            (\key ->
+                case key of
+                    "ArrowLeft" ->
+                        D.succeed (Move Left)
+
+                    "ArrowRight" ->
+                        D.succeed (Move Right)
+
+                    "ArrowUp" ->
+                        D.succeed (Move Up)
+
+                    _ ->
+                        D.fail "unrecognized key"
+            )
 
 
 
@@ -145,9 +230,10 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div []
-        [ button [ onClick (Move Left) ] [ text "left" ]
-        , button [ onClick (Move Right), style "margin-left" "8px" ] [ text "right" ]
+        [ h1 [] [ text "floaty egg boy" ]
+        , p [ style "margin-top" "-1.5rem" ] [ text "arrow keys to move left and right!" ]
         , div [ style "display" "flex" ] [ viewGame model ]
+        , p [] [ text "Also, that gold thing is a ladder! Hit up to climb it!" ]
         ]
 
 
@@ -197,6 +283,9 @@ viewBackground background =
                 Door ->
                     "brown"
 
+                Ladder ->
+                    "gold"
+
                 Sky ->
                     "#3399ff"
     in
@@ -218,6 +307,9 @@ viewForeground foreground =
             case foreground of
                 Grass ->
                     "#389838"
+
+                DarkGrass ->
+                    "#286838"
 
                 Rock ->
                     "gray"
@@ -252,6 +344,9 @@ viewPlayer player =
                     "scaleX(-1)"
 
                 Right ->
+                    ""
+
+                Up ->
                     ""
             )
         ]
