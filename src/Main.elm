@@ -54,7 +54,7 @@ type TileBackground
 
 type TileForeground
     = Grass
-    | DarkGrass
+    | LadderTop
     | Hole
     | Rock
 
@@ -70,6 +70,7 @@ type Direction
     = Left
     | Right
     | Up
+    | Down
 
 
 
@@ -90,8 +91,8 @@ map =
     Grid.fromLists
         (Tile Wall Hole)
         [ [ Tile Sky Hole, Tile Sky Hole, Tile Sky Hole, Tile Sky Hole, Tile Sky Hole ]
-        , [ Tile Sky Hole, Tile Sky Hole, Tile Sky Hole, Tile Sky Hole, Tile Sky Hole ]
-        , [ Tile Sky Hole, Tile Sky Grass, Tile Sky DarkGrass, Tile Wall Grass, Tile Sky Hole ]
+        , [ Tile Sky Hole, Tile Sky Hole, Tile Sky Grass, Tile Sky Grass, Tile Sky Hole ]
+        , [ Tile Sky Hole, Tile Sky Grass, Tile Wall LadderTop, Tile Wall Grass, Tile Sky Hole ]
         , [ Tile Sky Grass, Tile Wall Grass, Tile Ladder Grass, Tile Wall Grass, Tile Sky Grass ]
         ]
 
@@ -137,6 +138,15 @@ update msg model =
                               else
                                 player.y
                             )
+
+                        Down ->
+                            ( player.x
+                            , if isPlayerOnForeground model LadderTop then
+                                min (Grid.height map - 1) (model.player.y + 1)
+
+                              else
+                                player.y
+                            )
             in
             ( { model
                 | player =
@@ -157,7 +167,7 @@ update msg model =
                 isPlayerOnGround =
                     List.any (isPlayerOnForeground model)
                         [ Grass
-                        , DarkGrass
+                        , LadderTop
                         , Rock
                         ]
             in
@@ -218,6 +228,9 @@ keyDownDecoder =
                     "ArrowUp" ->
                         D.succeed (Move Up)
 
+                    "ArrowDown" ->
+                        D.succeed (Move Down)
+
                     _ ->
                         D.fail "unrecognized key"
             )
@@ -230,7 +243,7 @@ keyDownDecoder =
 view : Model -> Html Msg
 view model =
     div []
-        [ h1 [] [ text "floaty egg boy" ]
+        [ h1 [] [ text "mr. floating egg boy" ]
         , p [ style "margin-top" "-1.5rem" ] [ text "arrow keys to move left and right!" ]
         , div [ style "display" "flex" ] [ viewGame model ]
         , p [] [ text "Also, that gold thing is a ladder! Hit up to climb it!" ]
@@ -308,7 +321,7 @@ viewForeground foreground =
                 Grass ->
                     "#389838"
 
-                DarkGrass ->
+                LadderTop ->
                     "#286838"
 
                 Rock ->
@@ -347,6 +360,9 @@ viewPlayer player =
                     ""
 
                 Up ->
+                    ""
+
+                Down ->
                     ""
             )
         ]
