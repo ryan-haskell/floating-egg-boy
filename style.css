@@ -1,0 +1,9 @@
+body {
+  background: #333;
+}
+
+@keyframes floaty {
+    from {transform: translateY(-2px);}
+    50% { transform: translateY(2px); }
+    to {transform: translateY(-2px);}
+}
