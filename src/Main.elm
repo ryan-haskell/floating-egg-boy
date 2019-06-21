@@ -1,4 +1,4 @@
-module Main exposing (Flags, Model, Msg(..), command, commandFromGamepad, commandFromKeys, init, keyDecoder, main, subscriptions, update, view)
+module Main exposing (main)
 
 import Browser
 import Browser.Events as Events

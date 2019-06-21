@@ -1,13 +1,12 @@
-module Player exposing (ClimbDirection(..), Command(..), MoveDirection(..), Player(..), climb, continueUntilCompleted, getAnimatedLocation, getLocation, getPercent, getX, getY, init, move, nextState, step, toPixels, update, updatePosition, view)
-
--- ( ClimbDirection(..)
--- , Command(..)
--- , MoveDirection(..)
--- , Player
--- , init
--- , update
--- , view
--- )
+module Player exposing
+    ( ClimbDirection(..)
+    , Command(..)
+    , MoveDirection(..)
+    , Player
+    , init
+    , update
+    , view
+    )
 
 import Html exposing (..)
 import Html.Attributes exposing (class, style)
