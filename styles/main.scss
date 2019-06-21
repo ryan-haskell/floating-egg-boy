@@ -1,0 +1,92 @@
+html, body {
+  height: 100%;
+}
+
+@keyframes floaty {
+  from {transform: translateY(-2px);}
+  50% { transform: translateY(2px); }
+  to {transform: translateY(-2px);}
+}
+
+body {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  background: #333;
+  color: #fff;
+}
+
+h1 {
+  margin: 0;
+  margin-bottom: -1rem;
+}
+
+body > div {
+  height: auto !important;
+}
+
+.game {
+  position: relative;
+}
+
+
+.map {
+  $tile-size: 50px;
+  &__row {
+    display: flex;
+  }
+  &__tile {
+    width: $tile-size;
+    height: $tile-size;
+    position: relative;
+  }
+}
+
+.bg, .fg {
+}
+
+.bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  &--sky {
+    background-color: skyblue;
+  }
+  &--wall {
+    background-color: #888;
+  }
+  &--door {
+    background-color: burlywood;
+  }
+  &--ladder {
+    background-color: goldenrod;
+  }
+}
+
+.fg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 20%;
+  &--grass {
+    background-color: green;
+  }
+  &--laddertop {
+    background-color: darkolivegreen;
+  }
+  &--hole {
+    background-color: rgb(0,0,0,0);
+  }
+  &--rock {
+    background-color: #555;
+  }
+}
