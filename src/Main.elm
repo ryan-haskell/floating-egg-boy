@@ -111,13 +111,12 @@ update msg model =
 
 command : Input -> Maybe Command
 command input =
-    Debug.log "Command" <|
-        case input of
-            Input.UsingKeyboard keys ->
-                commandFromKeys keys
+    case input of
+        Input.UsingKeyboard keys ->
+            commandFromKeys keys
 
-            Input.UsingGamepad gamepad ->
-                commandFromGamepad gamepad
+        Input.UsingGamepad gamepad ->
+            commandFromGamepad gamepad
 
 
 commandFromKeys : List Input.Key -> Maybe Command
