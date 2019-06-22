@@ -229,4 +229,6 @@ view model =
             , Player.view model.player
             ]
         , p [] [ text "arrow keys to move, and those gold things are ladders." ]
+        , button [ onClick (KeyboardEvent (KeyEvent Pressed ArrowRight) ] [ text "press right" ]
+        , button [ onClick (KeyboardEvent (KeyEvent Released ArrowRight) ] [ text "release right" ]
         ]
